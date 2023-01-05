@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空氣品質監測網</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        h1{
+            text-align: center;
+        }
+        .content{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card{
+            width: 100px;
+            min-height: 20vh;
+            margin: 10px;
+            padding: 20px;
+            text-align: center;
+            border:  1px solid darkkhaki;
+            border-radius: 10px;
+        }
+        
+        i{
+            font-size: 50px;
+        }
+        nav{
+            display: flex;
+            width: 100vw;
+            height: 100px;
+            justify-content: space-around;
+        }
+        .button-56 {
+        align-items: center;
+        background-color: #fee6e3;
+        border: 2px solid #111;
+        border-radius: 8px;
+        box-sizing: border-box;
+        color: #111;
+        cursor: pointer;
+        display: flex;
+        font-family: Inter,sans-serif;
+        font-size: 16px;
+        height: 48px;
+        justify-content: center;
+        line-height: 24px;
+        max-width: 100%;
+        padding: 0 25px;
+        position: relative;
+        text-align: center;
+        text-decoration: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        }
+
+        .button-56:after {
+        background-color: #111;
+        border-radius: 8px;
+        content: "";
+        display: block;
+        height: 48px;
+        left: 0;
+        width: 100%;
+        position: absolute;
+        top: -2px;
+        transform: translate(8px, 8px);
+        transition: transform .2s ease-out;
+        z-index: -1;
+        }
+
+        .button-56:hover:after {
+        transform: translate(0, 0);
+        }
+
+        .button-56:active {
+        background-color: #ffdeda;
+        outline: 0;
+        }
+
+        .button-56:hover {
+        outline: 0;
+        }
+
+        @media (min-width: 768px) {
+        .button-56 {
+            padding: 0 40px;
+        }
+        }
+    </style>
+</head>
+<body>
+    <h1>空氣品質監測網</h1>
+    <nav>
+        <button class="button-56" role="button"><div class="region" onclick="filter('all')">全台</div></button>
+        <button class="button-56" role="button"><div class="region" onclick="filter(north)">北部</div></button>
+        <button class="button-56" role="button"><div class="region" onclick="filter(middle)">中部</div></button>
+        <button class="button-56" role="button"><div class="region" onclick="filter(south)">南部</div></button>
+        <button class="button-56" role="button"><div class="region" onclick="filter(east)">東部</div></button>
+        <button class="button-56" role="button"><div class="region" onclick="filter(island)">離島</div></button>     
+    </nav>
+
+    <div class="content"></div>
+
+    <script>
+        const content = document.querySelector('.content')
+        const north = ['臺北市','新北市','基隆市','宜蘭縣','桃園市','新竹縣','新竹市']
+        const middle = ['苗栗縣','臺中市','彰化縣','南投縣','雲林縣']
+        const south = ['高雄市','臺南市','嘉義市','嘉義縣','屏東縣','澎湖縣']
+        const east = ['花蓮縣','臺東縣']
+        const island = ['金門縣','連江縣']
+
+        fetch('https://data.epa.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate%20desc&format=JSON')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data){
+                let api_info = data.records
+
+                // console.log(data);
+                // console.log(data.records[27].sitename);
+
+                api_info.forEach(element => {
+                    let location = element.county
+                    let section = element.sitename
+                    let aqi = element.aqi
+                    // console.log(location);
+                    // console.log(section);
+                    let icon
+                    let color
+                    let suggest
+
+                     if(aqi <= 50){
+                        icon = '<i class="fa-regular fa-face-laugh-beam"></i>'
+                        color = "#66CDAA"
+                        suggest = '良好'
+                     }else if(51 <= aqi <= 100){
+                        icon ='<i class="fa-regular fa-face-smile"></i>'
+                        color = "#FFFFE0"
+                        suggest = '普通'
+                     }else if(101 <= aqi <= 150){
+                        icon ='<i class="fa-regular fa-face-meh"></i>'
+                        color = "#FFA07A"
+                        suggest = '對敏感族群不良'
+                     }else if(151 <= aqi <= 200){
+                        icon ='<i class="fa-regular fa-face-frown"></i>'
+                        color = "#CD5C5C"
+                        suggest = '對所有族群不良'
+                     }else if(aqi >= 201){
+                        icon ='<i class="fa-regular fa-face-dizzy"></i>'
+                        color = "#9370DB"
+                        suggest = '非常不良'
+                    }
+
+
+
+                    content.innerHTML = content.innerHTML + `
+                    <div class="card area" style="background-color:${ color };" data-citys="${ location }">
+                    
+                    
+                        <div class="icon">${ icon }</div>
+                        <p>${ location }</p> 
+                        <p>${ section }</p> 
+                        <p>AQI：${ aqi }</p>
+                        <p>${ suggest }</p>
+
+
+                    </div>
+
+                    `
+                });
+            });
+            function filter(areas) {
+                    var allcity = document.querySelectorAll('.area.card')
+                    for (let index = 0; index < allcity.length; index++) {
+                        const city = allcity[index]
+                        if (areas == 'all') {
+                                city.style.display = 'block'
+                                console.log(city);
+                            }else{
+                                city.style.display = 'none'
+                                for (let index = 0; index < areas.length; index++) {
+                                    const area = areas[index];
+                                        if (city.dataset.citys == area) {
+                                            city.style.display = 'block'
+                                        }
+                                    
+                                }
+                            }
+                    }
+                    
+                }
+    </script>
+</body>
+</html>
